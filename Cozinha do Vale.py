@@ -1,248 +1,281 @@
 import pyxel
 
-# Dimensões da janela
+#tamanho da janela do jogo
 WINDOW_WIDTH = 160
 WINDOW_HEIGHT = 120
 
-# A classe principal do jogo
+#classe principal do jogo
 class CozinhaGame:
     def __init__(self):
-        # Inicializa a janela do Pyxel
-        pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, title="Jogo da Cozinha")
         
-        # Habilita a exibição do cursor do mouse
+        #define o titulo
+        pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, title="Cozinha do Vale")
+        
+        #ligar o mouse pra usar ele no jogo
         pyxel.mouse(True)
 
-        # Carrega a imagem do fundo (Cozinha.png) e outras imagens
-        # Certifique-se de que Cozinha.png, Ovo.png, Leite.png, Queijo.png, Panela.png, Bolo.png
-        # estejam na mesma pasta do seu script Python.
-        pyxel.image(0).load(0, 0, "Cozinha.png") # Fundo no image bank 0
-        pyxel.image(1).load(0, 0, "Ovo.png")
-        pyxel.image(1).load(32, 0, "Leite.png")
-        pyxel.image(1).load(48, 0, "Queijo.png")
-        pyxel.image(1).load(64, 0, "Panela.png")
-        pyxel.image(1).load(80, 0, "Bolo.png") # Imagem do Bolo
+        
+        #imagens do jogo
+        pyxel.image(0).load(0, 0, "cozinha final boss.png") 
+        pyxel.image(1).load(0, 0, "ovo.png")
+        pyxel.image(1).load(32, 0, "leite.png")
+        pyxel.image(1).load(48, 0, "farinha.png")
+        pyxel.image(1).load(64, 0, "açucar.png")
+        pyxel.image(1).load(80, 0, "panela.png") 
 
-        # Posições e estados dos ingredientes na prateleira
+        
+        # dados dos ingredientes tipo onde eles ficam e se estao sendo arrastados
         self.ingredientes_data = {
-            "ovo":      {"name": "Ovo",     "x": 20, "y": 20, "x_orig": 20, "y_orig": 20,  "img_u": 0, "img_v": 0,  "dragging": False, "in_pan": False},
-            "leite":    {"name": "Leite",   "x": 20, "y": 50, "x_orig": 20, "y_orig": 50, "img_u": 32, "img_v": 0, "dragging": False, "in_pan": False},
-            "queijo":   {"name": "Queijo",  "x": 20, "y": 80, "x_orig": 20, "y_orig": 80, "img_u": 48, "img_v": 0, "dragging": False, "in_pan": False},
+            "ovo":      {"name": "ovo",   "x": 9, "y": 37, "x_orig": 9, "y_orig": 37,  "img_u": 0, "img_v": 0,   "dragging": False, "in_area": False},
+            "leite":    {"name": "leite",   "x": 20, "y": 37, "x_orig": 20, "y_orig": 37, "img_u": 32, "img_v": 0, "dragging": False, "in_area": False},
+            "farinha":  {"name": "farinha", "x": 9, "y": 48, "x_orig": 9, "y_orig": 48, "img_u": 48, "img_v": 0, "dragging": False, "in_area": False},
+            "açucar":   {"name": "açucar",  "x": 20, "y": 48, "x_orig": 20, "y_orig": 48, "img_u": 64, "img_v": 0, "dragging": False, "in_area": False},
         }
         
-        # Posição da panela
-        self.panela_rect = {"x": WINDOW_WIDTH // 2 - 8, "y": WINDOW_HEIGHT - 30, "w": 16, "h": 16, "img_u": 64, "img_v": 0}
+        # panela, que e a area de combinacao
+        self.panela_rect = {"x": WINDOW_WIDTH // 2 - 18, "y": WINDOW_HEIGHT // 2 - 10, "w": 32, "h": 32}
 
-        # Posições fixas para os ingredientes (slots)
-        self.pan_slots = [
-            {"x": self.panela_rect["x"] - 20, "y": self.panela_rect["y"]},
-            {"x": self.panela_rect["x"] + 20, "y": self.panela_rect["y"]}
+        
+        self.combination_rect = {"x": self.panela_rect["x"] + 8, "y": self.panela_rect["y"] + 8, "w": 16, "h": 16}
+
+        
+        self.combination_slots = [
+            {"x": self.combination_rect["x"] - 6, "y": self.combination_rect["y"]},
+            {"x": self.combination_rect["x"] + 10, "y": self.combination_rect["y"]}
         ]
         
-        # Posição e dimensões do botão de confirmar
-        self.confirm_button_rect = {"x": WINDOW_WIDTH // 2 - 25, "y": 10, "w": 50, "h": 15}
+        # as posicoes e tamanhos dos botoes
+        self.confirm_button_rect = {"x": WINDOW_WIDTH // 2 - 35, "y": 71, "w": 50, "h": 15}
 
-        # Posições dos novos botões (ajustadas para ficarem abaixo do bolo)
-        # O espaçamento y foi ajustado para melhor visualização
         self.another_recipe_button_rect = {"x": WINDOW_WIDTH // 2 - 40, "y": WINDOW_HEIGHT // 2 + 20, "w": 80, "h": 15}
         self.show_list_button_rect = {"x": WINDOW_WIDTH // 2 - 40, "y": WINDOW_HEIGHT // 2 + 40, "w": 80, "h": 15}
+        
+        self.back_button_rect = {"x": WINDOW_WIDTH // 2 - 40, "y": WINDOW_HEIGHT - 25, "w": 80, "h": 15}
+        
+        # botao pra comecar o jogo
+        self.start_button_rect = {"x": WINDOW_WIDTH // 2 - 40, "y": WINDOW_HEIGHT // 2, "w": 80, "h": 15}
 
-        self.show_bolo = False # Flag para mostrar o bolo na tela de receita pronta
-        self.ingredientes_na_panela = []
 
-        # Definição das receitas (ingredientes necessários)
+        self.ingredientes_na_area = []
+
+        # as receitas que da pra fazer
         self.receitas_possiveis = {
-            frozenset(["ovo", "leite"]): "Bolo",
-            frozenset(["queijo", "leite"]): "Creme de Queijo",
+            frozenset(["ovo", "leite"]): "Bolo Simples",
+            frozenset(["farinha", "leite"]): "Bolo de Cenoura",
+            frozenset(["farinha", "açucar"]): "Bolo de Chocolate",
         }
 
-        # Lista para armazenar as receitas concluídas
+        # lista das receitas que ja foram feitas
         self.receitas_concluidas = []
 
-        # Variáveis de estado do jogo
-        self.game_state = "playing" # 'playing', 'recipe_done', 'show_list', 'game_over'
+        # comeca o jogo na tela de inicio
+        self.game_state = "start_screen" 
         self.message = ""
+        
+        # pra saber se ja tem algum ingrediente sendo arrastado
+        self.dragging_ingredient = None
 
-        # Inicia o loop do jogo
+        # comeca o jogo
         pyxel.run(self.update, self.draw)
 
+    # isso aqui roda toda hora, e a logica do jogo
     def update(self):
-        if self.game_state == "playing":
-            # Lógica de arrastar e soltar
-            for key, ingrediente in self.ingredientes_data.items():
-                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) and \
-                   ingrediente["x"] < pyxel.mouse_x < ingrediente["x"] + 16 and \
-                   ingrediente["y"] < pyxel.mouse_y < ingrediente["y"] + 16 and \
-                   not ingrediente["in_pan"]:
-                    ingrediente["dragging"] = True
+        # se for a tela de inicio, ve se o botao de comecar foi clicado
+        if self.game_state == "start_screen":
+            if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) and \
+               self.start_button_rect["x"] < pyxel.mouse_x < self.start_button_rect["x"] + self.start_button_rect["w"] and \
+               self.start_button_rect["y"] < pyxel.mouse_y < self.start_button_rect["y"] + self.start_button_rect["h"]:
+                self.game_state = "playing"
                 
-                if ingrediente["dragging"]:
-                    ingrediente["x"] = pyxel.mouse_x - 8
-                    ingrediente["y"] = pyxel.mouse_y - 8
+        # se o jogo estiver rodando, faz as coisas de drag and drop
+        elif self.game_state == "playing":
+            # se clicou e nao tem nada sendo arrastado ainda
+            if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) and self.dragging_ingredient is None:
+                # checa se o mouse ta em cima de um ingrediente
+                for key in list(self.ingredientes_data.keys()):
+                    ingrediente = self.ingredientes_data[key]
+                    if ingrediente["x_orig"] < pyxel.mouse_x < ingrediente["x_orig"] + 16 and \
+                       ingrediente["y_orig"] < pyxel.mouse_y < ingrediente["y_orig"] + 16 and \
+                       not ingrediente["in_area"]:
+                        self.dragging_ingredient = key
+                        ingrediente["dragging"] = True
+                        break # para de checar, ja pegou um
+            
+            # se tem um ingrediente sendo arrastado
+            if self.dragging_ingredient:
+                ingrediente = self.ingredientes_data[self.dragging_ingredient]
+                ingrediente["x"] = pyxel.mouse_x - 8
+                ingrediente["y"] = pyxel.mouse_y - 8
 
-                if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and ingrediente["dragging"]:
+                # se soltou o mouse
+                if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
                     ingrediente["dragging"] = False
                     
-                    slot_colidiu = False
-                    for i, slot in enumerate(self.pan_slots):
-                        if slot["x"] < pyxel.mouse_x < slot["x"] + 16 and \
-                           slot["y"] < pyxel.mouse_y < slot["y"] + 16:
-                            if key not in self.ingredientes_na_panela and len(self.ingredientes_na_panela) <= i:
-                                ingrediente["in_pan"] = True
-                                ingrediente["x"] = slot["x"]
-                                ingrediente["y"] = slot["y"]
-                                self.ingredientes_na_panela.insert(i, key)
-                                slot_colidiu = True
-                                break
-                            elif key in self.ingredientes_na_panela:
-                                # Se já está na panela e arrastou para outro slot, move
-                                self.ingredientes_na_panela.remove(key)
-                                self.ingredientes_na_panela.insert(i, key)
-                                ingrediente["x"] = slot["x"]
-                                ingrediente["y"] = slot["y"]
-                                slot_colidiu = True
-                                break
-                    
-                    if not slot_colidiu:
-                        # Se não colidiu com slot, retorna à posição original
+                    # se soltou na panela
+                    if self.panela_rect["x"] < pyxel.mouse_x < self.panela_rect["x"] + self.panela_rect["w"] and \
+                       self.panela_rect["y"] < pyxel.mouse_y < self.panela_rect["y"] + self.panela_rect["h"]:
+                        
+                        # se o ingrediente nao ta na panela e tem espaco
+                        if self.dragging_ingredient not in self.ingredientes_na_area and len(self.ingredientes_na_area) < 2:
+                            self.ingredientes_na_area.append(self.dragging_ingredient)
+                            self.message = f"{ingrediente['name'].capitalize()} adicionado!"
+                            ingrediente["in_area"] = True
+                            
+                    else:
+                        # se soltou fora da panela, volta pro lugar
                         ingrediente["x"] = ingrediente["x_orig"]
                         ingrediente["y"] = ingrediente["y_orig"]
-                        ingrediente["in_pan"] = False
-                        if key in self.ingredientes_na_panela:
-                            self.ingredientes_na_panela.remove(key)
+                        ingrediente["in_area"] = False
+                    
+                    self.dragging_ingredient = None
 
-            # Lógica para o botão de confirmar a receita
+
+            # logica do botao de confirmar
             if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) and \
                self.confirm_button_rect["x"] < pyxel.mouse_x < self.confirm_button_rect["x"] + self.confirm_button_rect["w"] and \
                self.confirm_button_rect["y"] < pyxel.mouse_y < self.confirm_button_rect["y"] + self.confirm_button_rect["h"]:
                 
-                if len(self.ingredientes_na_panela) == 2:
+                # se tiver dois ingredientes, checa a receita
+                if len(self.ingredientes_na_area) == 2:
                     self.check_recipe()
                 else:
                     self.message = "Precisa de 2 ingredientes!"
             
-            # Botão de limpar (C)
+            
+            # se apertar C, limpa a panela
             if pyxel.btnp(pyxel.KEY_C):
-                self.clear_pan()
+                self.clear_area()
 
+        # se a receita foi feita
         elif self.game_state == "recipe_done":
-            # Lógica dos novos botões
+        
             if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-                # Botão "Fazer outra?"
+
+                # ve se o botao de fazer outra receita foi clicado
                 if self.another_recipe_button_rect["x"] < pyxel.mouse_x < self.another_recipe_button_rect["x"] + self.another_recipe_button_rect["w"] and \
                    self.another_recipe_button_rect["y"] < pyxel.mouse_y < self.another_recipe_button_rect["y"] + self.another_recipe_button_rect["h"]:
-                    self.clear_pan() # Limpa e retorna ao estado 'playing'
+                    self.clear_area() 
                 
-                # Botão "Ver lista"
+                # ve se o botao de ver a lista foi clicado
                 elif self.show_list_button_rect["x"] < pyxel.mouse_x < self.show_list_button_rect["x"] + self.show_list_button_rect["w"] and \
-                     self.show_list_button_rect["y"] < pyxel.mouse_y < self.show_list_button_rect["y"] + self.show_list_button_rect["h"]:
+                        self.show_list_button_rect["y"] < pyxel.mouse_y < self.show_list_button_rect["y"] + self.show_list_button_rect["h"]:
                     self.game_state = "show_list"
         
+        # se for a tela da lista de receitas
         elif self.game_state == "show_list":
-            # Pressionar 'R' reinicia o jogo
+            # se apertar r, reinicia o jogo todo
             if pyxel.btnp(pyxel.KEY_R):
-                self.__init__() # Reseta completamente o jogo
+                self.__init__() 
+            
+            # ve se o botao de voltar foi clicado
+            if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) and \
+               self.back_button_rect["x"] < pyxel.mouse_x < self.back_button_rect["x"] + self.back_button_rect["w"] and \
+               self.back_button_rect["y"] < pyxel.mouse_y < self.back_button_rect["y"] + self.back_button_rect["h"]:
+                self.game_state = "playing" # volta pra cozinha
+                self.clear_area() # faz os ingredientes voltarem pra estante
 
-        # Verificar condição de vitória (todas as receitas feitas)
+        # se todas as receitas foram feitas, e fim de jogo
         if len(self.receitas_concluidas) == len(self.receitas_possiveis) and self.game_state != "game_over":
             self.game_state = "game_over"
-            self.message = "Parabens! Voce fez todas as receitas!\nPressione 'R' para reiniciar."
+            self.message = "Parabens! Voce fez todas as receitas!"
 
-        # Pressionar 'R' na tela de Game Over também reinicia
-        if self.game_state == "game_over" and pyxel.btnp(pyxel.KEY_R):
-            self.__init__()
+        # se o jogo acabou e apertou qualquer tecla sai do jogo
+        if self.game_state == "game_over" and pyxel.btnp(pyxel.KEY_ANY):
+            pyxel.quit()
 
+    # checa a combinacao de ingredientes na panela
     def check_recipe(self):
-        ingredientes_atuais = frozenset(self.ingredientes_na_panela)
+        ingredientes_atuais = frozenset(self.ingredientes_na_area)
         receita_encontrada = False
         
+        # compara o que ta na panela com as receitas que existem
         for receita_ingredientes, nome_receita in self.receitas_possiveis.items():
             if ingredientes_atuais == receita_ingredientes:
                 if nome_receita not in self.receitas_concluidas:
                     self.receitas_concluidas.append(nome_receita)
                     self.message = f"Voce fez: {nome_receita}!"
                 else:
-                    self.message = "Voce ja fez essa receita. Vejo que aprendeu bem!"
+                    self.message = "Voce ja fez essa receita!"
                 
-                # Verifica se a receita é de Bolo para exibir a imagem
-                if nome_receita == "Bolo":
-                    self.show_bolo = True
-                else:
-                    self.show_bolo = False # Nao mostra imagem para outras receitas
-
                 receita_encontrada = True
                 break
         
+        # se nao achou a receita, manda uma mensagem
         if not receita_encontrada:
             self.message = "Essa combinacao nao faz nada!"
-            self.show_bolo = False # Nao mostra imagem se a receita for invalida
         
-        self.game_state = "recipe_done" # Transiciona para a tela de receita pronta
+        # muda o estado do jogo pra tela de receita feita
+        self.game_state = "recipe_done" 
 
-    def clear_pan(self):
-        # Retorna todos os ingredientes às suas posições originais na prateleira
-        for ing_key in self.ingredientes_data: # Itera sobre TODOS os ingredientes, nao apenas os na panela
-            self.ingredientes_data[ing_key]["in_pan"] = False
-            self.ingredientes_data[ing_key]["x"] = self.ingredientes_data[ing_key]["x_orig"]
-            self.ingredientes_data[ing_key]["y"] = self.ingredientes_data[ing_key]["y_orig"]
+    # faz os ingredientes voltarem pro lugar
+    def clear_area(self):
+        for ingrediente_key in self.ingredientes_na_area:
+            ingrediente = self.ingredientes_data.get(ingrediente_key)
+            if ingrediente:
+                ingrediente["x"] = ingrediente["x_orig"]
+                ingrediente["y"] = ingrediente["y_orig"]
+                ingrediente["in_area"] = False
+                ingrediente["dragging"] = False
             
-        self.ingredientes_na_panela.clear()
-        self.show_bolo = False # Garante que o bolo suma ao limpar a panela
-        self.message = "" # Limpa qualquer mensagem anterior
-        self.game_state = "playing" # Retorna ao estado de jogo principal
+        self.ingredientes_na_area.clear()
+        self.message = "" 
+        self.game_state = "playing" 
 
     def draw(self):
-        pyxel.cls(0)
-        # Desenha o fundo da cozinha em TODAS as telas
-        pyxel.blt(0, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        pyxel.cls(0) # limpa a tela
         
-        if self.game_state == "playing":
-            # Desenha a panela
-            pyxel.blt(self.panela_rect["x"], self.panela_rect["y"], 1, 
-                      self.panela_rect["img_u"], self.panela_rect["img_v"], 
-                      self.panela_rect["w"], self.panela_rect["h"], 0)
+        # desenha a tela de inicio
+        if self.game_state == "start_screen":
+            pyxel.cls(14) # fundo rosa
+            title_text = "Cozinha do Vale"
+            title_width = len(title_text) * 4
+            pyxel.text(WINDOW_WIDTH // 2 - title_width // 2, WINDOW_HEIGHT // 2 - 20, title_text, 7)
+            
+            # desenha o botao de comecar
+            pyxel.rectb(self.start_button_rect["x"], self.start_button_rect["y"], 
+                        self.start_button_rect["w"], self.start_button_rect["h"], 7)
+            
+            button_text = "Iniciar Jogo"
+            text_width = len(button_text) * 4
+            text_x = self.start_button_rect["x"] + (self.start_button_rect["w"] - text_width) // 2
+            pyxel.text(text_x, self.start_button_rect["y"] + 4, button_text, 7)
 
-            # Desenha os quadrados dos slots
-            pyxel.rect(self.pan_slots[0]["x"], self.pan_slots[0]["y"], 16, 16, 13)
-            pyxel.rect(self.pan_slots[1]["x"], self.pan_slots[1]["y"], 16, 16, 13)
+        # desenha a tela do jogo
+        elif self.game_state == "playing":
+            # desenha o fundo da cozinha
+            pyxel.blt(0, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, colkey = 11)
+            # desenha a panela
+            pyxel.blt(self.panela_rect["x"], self.panela_rect["y"], 1, 80, 0, 32, 32, colkey=0)
 
-            # Desenha o botão de Confirmar
+            # desenha os ingredientes na prateleira
+            for key, ingrediente in self.ingredientes_data.items():
+                if not ingrediente["in_area"]:
+                    pyxel.blt(ingrediente["x"], ingrediente["y"], 1, 
+                              ingrediente["img_u"], ingrediente["img_v"], 
+                              16, 16, 0)
+            
+            # desenha o botao de confirmar
             pyxel.rectb(self.confirm_button_rect["x"], self.confirm_button_rect["y"], 
                         self.confirm_button_rect["w"], self.confirm_button_rect["h"], 7)
-            pyxel.text(self.confirm_button_rect["x"] + 5, self.confirm_button_rect["y"] + 4, "Confirmar", 7)
             
-            # Desenha os ingredientes (sempre visíveis no modo playing)
-            for key, ingrediente in self.ingredientes_data.items():
-                pyxel.blt(ingrediente["x"], ingrediente["y"], 1, 
-                          ingrediente["img_u"], ingrediente["img_v"], 
-                          16, 16, 0)
+            # texto do botao
+            text_width = len("Confirmar") * 4
+            text_x = self.confirm_button_rect["x"] + (self.confirm_button_rect["w"] - text_width) // 2
+            pyxel.text(text_x, self.confirm_button_rect["y"] + 4, "Confirmar", 7)
             
-            # A lista de receitas e o título foram movidos para a direita
-            pyxel.text(WINDOW_WIDTH - 60, 50, "Receitas:", 7)
-            y_offset = 0
-            for receita in self.receitas_concluidas:
-                pyxel.text(WINDOW_WIDTH - 60, 60 + y_offset, receita, 10)
-                y_offset += 10
-            
-            # Desenha a mensagem de feedback
+            # desenha a mensagem na tela
             if self.message:
                 message_width = len(self.message) * 4
                 pyxel.text(WINDOW_WIDTH // 2 - message_width // 2, WINDOW_HEIGHT - 10, self.message, 7)
 
+        # desenha a tela de receita feita
         elif self.game_state == "recipe_done":
-            # Neste estado, a panela e os slots nao sao desenhados
+            pyxel.cls(0) # tela preta
             
-            # Se a receita de bolo foi feita, desenha o bolo
-            if self.show_bolo:
-                # Mensagem "Voce fez: Bolo!" acima do bolo
-                message_width = len(self.message) * 4 
-                pyxel.text(WINDOW_WIDTH // 2 - message_width // 2, WINDOW_HEIGHT // 2 - 25, self.message, 7)
+            message_width = len(self.message) * 4 
+            pyxel.text(WINDOW_WIDTH // 2 - message_width // 2, WINDOW_HEIGHT // 2 - 10, self.message, 7)
 
-                # Desenha o bolo bem centralizado
-                pyxel.blt(WINDOW_WIDTH // 2 - 8, WINDOW_HEIGHT // 2 - 8, 1, 
-                          80, 0, 16, 16, 0)
-
-            # Botões "Fazer outra?" e "Ver lista" abaixo do bolo
+            # desenha os botoes
             pyxel.rectb(self.another_recipe_button_rect["x"], self.another_recipe_button_rect["y"],
                         self.another_recipe_button_rect["w"], self.another_recipe_button_rect["h"], 7)
             pyxel.text(self.another_recipe_button_rect["x"] + 5, self.another_recipe_button_rect["y"] + 4, "Fazer outra?", 7)
@@ -251,8 +284,10 @@ class CozinhaGame:
                         self.show_list_button_rect["w"], self.show_list_button_rect["h"], 7)
             pyxel.text(self.show_list_button_rect["x"] + 10, self.show_list_button_rect["y"] + 4, "Ver lista", 7)
 
+        # desenha a tela da lista de receitas
         elif self.game_state == "show_list":
-            # Tela com a lista de receitas feitas
+            pyxel.cls(0) # tela preta
+            
             pyxel.text(WINDOW_WIDTH // 2 - 20, 20, "Receitas Feitas:", 7)
             y_offset = 0
             for receita in self.receitas_concluidas:
@@ -261,13 +296,18 @@ class CozinhaGame:
                 pyxel.text(x_pos, 40 + y_offset, receita, 10)
                 y_offset += 10
             
-            pyxel.text(WINDOW_WIDTH // 2 - 40, WINDOW_HEIGHT - 20, "Pressione 'R' para recomecar.", 7)
+            # desenha o botao de voltar
+            pyxel.rectb(self.back_button_rect["x"], self.back_button_rect["y"], 
+                        self.back_button_rect["w"], self.back_button_rect["h"], 7)
+            pyxel.text(self.back_button_rect["x"] + 10, self.back_button_rect["y"] + 4, "Voltar", 7)
 
+        # desenha a tela de fim de jogo
         elif self.game_state == "game_over":
-            # Tela de Game Over
-            pyxel.rect(0, WINDOW_HEIGHT // 2 - 20, WINDOW_WIDTH, 40, 0)
+            pyxel.cls(14) # tela final rosa
+            
             pyxel.text(WINDOW_WIDTH // 2 - len(self.message) * 2, WINDOW_HEIGHT // 2 - 10, self.message, 7)
-            pyxel.text(WINDOW_WIDTH // 2 - 40, WINDOW_HEIGHT // 2 + 10, "Pressione 'R' para reiniciar.", 7)
+            # mensagem pra sair do jogo
+            pyxel.text(WINDOW_WIDTH // 2 - 50, WINDOW_HEIGHT // 2 + 10, "Pressione qualquer tecla para sair.", 7)
 
-# Executa a classe principal do jogo
+
 CozinhaGame()
